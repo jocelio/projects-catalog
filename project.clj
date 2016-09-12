@@ -12,6 +12,9 @@
                  ;; [io.pedestal/pedestal.immutant "0.5.1"]
                  ;; [io.pedestal/pedestal.tomcat "0.5.1"]
 
+                 ;; lib to conect clojure with mongoDB
+                 [com.novemberain/monger "3.0.2"]
+
                  [ch.qos.logback/logback-classic "1.1.7" :exclusions [org.slf4j/slf4j-api]]
                  [org.slf4j/jul-to-slf4j "1.7.21"]
                  [org.slf4j/jcl-over-slf4j "1.7.21"]

@@ -2,7 +2,10 @@
   (:require [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
             [io.pedestal.http.body-params :as body-params]
-            [ring.util.response :as ring-resp]))
+            [ring.util.response :as ring-resp]
+            [monger.core :as mg]
+            [monger.collection :as mc]
+            [monger.json]))
 
 (defn about-page
   [request]
@@ -10,9 +13,16 @@
                               (clojure-version)
                               (route/url-for ::about-page))))
 
+;;(defn home-page
+;;  [request]
+;;  (ring-resp/response "Hello from herokuland!"))
+
 (defn home-page
   [request]
-  (ring-resp/response "Hello from herokuland!"))
+  (let [uri "mongodb://admin:admin@172.17.0.1:27017/admin"
+        {:keys [conn db]} (mg/connect-via-uri uri)]
+        (http/json-response
+          (mc/find-maps db "project-catalog"))))
 
 ;; Defines "/" and "/about" routes with their associated :get handlers.
 ;; The interceptors defined after the verb map (e.g., {:get home-page}
