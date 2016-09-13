@@ -13,16 +13,28 @@
                               (clojure-version)
                               (route/url-for ::about-page))))
 
-;;(defn home-page
-;;  [request]
-;;  (ring-resp/response "Hello from herokuland!"))
+(def connect-string "mongodb://admin:admin@172.17.0.2:27017/admin")
 
 (defn home-page
+ [request]
+ (ring-resp/response "Hello from herokuland!"))
+
+(defn get-projects
   [request]
-  (let [uri "mongodb://admin:admin@172.17.0.1:27017/admin"
+  (let [uri connect-string
         {:keys [conn db]} (mg/connect-via-uri uri)]
         (http/json-response
-          (mc/find-maps db "project-catalog"))))
+          (mc/find-maps db "projects-catalog"))))
+
+(defn add-project
+  [request]
+      (let [uri connect-string
+            incoming (:json-params request)
+            {:keys [conn db]} (mg/connect-via-uri "mongodb://admin:admin@172.17.0.2:27017/admin")]
+                  (ring-resp/created
+                  "http://my-created-resource-uri"
+                  (mc/insert-and-return db "projects-catalog" incoming))))
+
 
 ;; Defines "/" and "/about" routes with their associated :get handlers.
 ;; The interceptors defined after the verb map (e.g., {:get home-page}
@@ -30,8 +42,9 @@
 (def common-interceptors [(body-params/body-params) http/html-body])
 
 ;; Tabular routes
-(def routes #{["/" :get (conj common-interceptors `home-page)]
-              ["/about" :get (conj common-interceptors `about-page)]})
+;; (def routes #{["/" :get (conj common-interceptors `home-page)]
+;;               ["/about" :get (conj common-interceptors `about-page)]
+;;               ["/projects" :get (conj common-interceptors `get-projects)]})
 
 ;; Map-based routes
 ;(def routes `{"/" {:interceptors [(body-params/body-params) http/html-body]
@@ -39,10 +52,11 @@
 ;                   "/about" {:get about-page}}})
 
 ;; Terse/Vector-based routes
-;(def routes
-;  `[[["/" {:get home-page}
-;      ^:interceptors [(body-params/body-params) http/html-body]
-;      ["/about" {:get about-page}]]]])
+(def routes
+  `[[["/" {:get home-page}
+      ^:interceptors [(body-params/body-params) http/html-body]
+      ["/about" {:get about-page}]
+      ["/projects" {:get get-projects :post add-project}]]]])
 
 
 ;; Consumed by limitless-dawn-24766.server/create-server
