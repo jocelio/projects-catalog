@@ -5,7 +5,8 @@
             [ring.util.response :as ring-resp]
             [monger.core :as mg]
             [monger.collection :as mc]
-            [monger.json]))
+            [monger.json]
+            [io.pedestal.interceptor.helpers :refer [definterceptor defhandler]]))
 
 (defn about-page
   [request]
@@ -13,11 +14,12 @@
                               (clojure-version)
                               (route/url-for ::about-page))))
 
-(def connect-string "mongodb://admin:admin@172.17.0.2:27017/admin")
+(def connect-string "mongodb://admin:admin@172.17.0.1:27017/admin")
+
 
 (defn home-page
  [request]
- (ring-resp/response "Hello from herokuland!"))
+ (ring-resp/response "Hello world!"))
 
 (defn get-projects
   [request]
@@ -26,15 +28,33 @@
         (http/json-response
           (mc/find-maps db "projects-catalog"))))
 
+(defn db-get-project [proj-name]
+  (let [uri connect-string
+        {:keys [conn db]} (mg/connect-via-uri uri)]
+    (mc/find-maps db "projects-catalog" {:proj-name proj-name})))
+
+(defn get-project [request]
+  (http/json-response
+    (db-get-project (get-in request [:path-params :proj-name]))))
+
+
 (defn add-project
   [request]
       (let [uri connect-string
             incoming (:json-params request)
-            {:keys [conn db]} (mg/connect-via-uri "mongodb://admin:admin@172.17.0.2:27017/admin")]
+            {:keys [conn db]} (mg/connect-via-uri uri)]
                   (ring-resp/created
                   "http://my-created-resource-uri"
                   (mc/insert-and-return db "projects-catalog" incoming))))
 
+
+(defhandler token-check [request]
+    (let [token (get-in request [:header "x-catalog-token"])]
+        (if (not (= token "o brave new world"))
+            (assoc (ring-resp/response {:body "access denied"}) :status 403)
+        )
+    )
+)
 
 ;; Defines "/" and "/about" routes with their associated :get handlers.
 ;; The interceptors defined after the verb map (e.g., {:get home-page}
@@ -54,9 +74,10 @@
 ;; Terse/Vector-based routes
 (def routes
   `[[["/" {:get home-page}
-      ^:interceptors [(body-params/body-params) http/html-body]
+      ^:interceptors [(body-params/body-params) http/html-body token-check]
       ["/about" {:get about-page}]
-      ["/projects" {:get get-projects :post add-project}]]]])
+      ["/projects" {:get get-projects :post add-project}]
+      ["/projects/:proj-name" {:get get-project}]]]])
 
 
 ;; Consumed by limitless-dawn-24766.server/create-server
