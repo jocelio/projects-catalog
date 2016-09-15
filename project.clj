@@ -1,4 +1,4 @@
-(defproject limitless-dawn-24766 "0.0.1-SNAPSHOT"
+(defproject projects_catalog "0.0.1-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -27,8 +27,8 @@
 
   ;; If you use HTTP/2 or ALPN, use the java-agent to pull in the correct alpn-boot dependency
   ;:java-agents [[org.mortbay.jetty.alpn/jetty-alpn-agent "2.0.3"]]
-  :profiles {:dev {:aliases {"run-dev" ["trampoline" "run" "-m" "limitless-dawn-24766.server/run-dev"]}
+  :profiles {:dev {:aliases {"run-dev" ["trampoline" "run" "-m" "projects_catalog.server/run-dev"]}
                    :dependencies [[io.pedestal/pedestal.service-tools "0.5.1"]]}
-             :uberjar {:aot [limitless-dawn-24766.server]}}
-  :main ^{:skip-aot true} limitless-dawn-24766.server)
+             :uberjar {:aot [projects_catalog.server]}}
+  :main ^{:skip-aot true} projects_catalog.server)
 
