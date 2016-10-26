@@ -14,7 +14,7 @@
                               (clojure-version)
                               (route/url-for ::about-page))))
 
-(def connect-string "mongodb://admin:admin@172.17.0.1:27017/admin")
+(def connect-string "mongodb://admin:admin@172.17.0.9:27017/admin")
 
 
 (defn home-page
@@ -49,12 +49,13 @@
 
 
 (defhandler token-check [request]
-    (let [token (get-in request [:header "x-catalog-token"])]
+    (let [token (get-in request [:headers "x-catalog-token"])]
         (if (not (= token "o brave new world"))
             (assoc (ring-resp/response {:body "access denied"}) :status 403)
         )
     )
 )
+
 
 ;; Defines "/" and "/about" routes with their associated :get handlers.
 ;; The interceptors defined after the verb map (e.g., {:get home-page}
@@ -96,7 +97,9 @@
               ;;
               ;; "http://localhost:8080"
               ;;
-              ;;::http/allowed-origins ["scheme://host:port"]
+              ::http/allowed-origins {:creds true :allowed-origins (constantly true)}
+              ;;::http/allowed-headers ["x-catalog-token"]
+              ;;::http/allowed-methods ["POST" "GET"]
 
               ;; Root for resource interceptor that is available by default.
               ::http/resource-path "/public"
@@ -112,4 +115,3 @@
                                         ;:key-password "password"
                                         ;:ssl-port 8443
                                         :ssl? false}})
-
