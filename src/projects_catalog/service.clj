@@ -75,7 +75,7 @@
 ;; Terse/Vector-based routes
 (def routes
   `[[["/" {:get home-page}
-      ;;^:interceptors [(body-params/body-params) http/html-body token-check]
+      ^:interceptors [(body-params/body-params) http/html-body token-check]
       ["/about" {:get about-page}]
       ["/projects" {:get get-projects :post add-project}]
       ["/projects/:proj-name" {:get get-project}]]]])
