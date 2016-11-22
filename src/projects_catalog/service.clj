@@ -14,7 +14,7 @@
                               (clojure-version)
                               (route/url-for ::about-page))))
 
-(def connect-string "mongodb://admin:admin@172.17.0.9:27017/admin")
+(def connect-string "mongodb://admin:admin@172.17.0.1:27017/admin")
 
 
 (defn home-page
@@ -43,9 +43,8 @@
       (let [uri connect-string
             incoming (:json-params request)
             {:keys [conn db]} (mg/connect-via-uri uri)]
-                  (ring-resp/created
-                  "http://my-created-resource-uri"
-                  (mc/insert-and-return db "projects-catalog" incoming))))
+                  (http/json-response
+                        (mc/insert-and-return db "projects-catalog" incoming))))
 
 
 (defhandler token-check [request]
@@ -77,7 +76,7 @@
   `[[["/" {:get home-page}
       ^:interceptors [(body-params/body-params) http/html-body token-check]
       ["/about" {:get about-page}]
-      ["/projects" {:get get-projects :post add-project}]
+      ["/projects/" {:get get-projects :post add-project}]
       ["/projects/:proj-name" {:get get-project}]]]])
 
 
