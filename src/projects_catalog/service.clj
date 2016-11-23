@@ -8,18 +8,19 @@
             [monger.json]
             [io.pedestal.interceptor.helpers :refer [definterceptor defhandler]]))
 
+
 (defn about-page
   [request]
   (ring-resp/response (format "Clojure %s - served from %s"
                               (clojure-version)
                               (route/url-for ::about-page))))
 
-(def connect-string "mongodb://admin:admin@172.17.0.1:27017/admin")
 
+(def connect-string "mongodb://admin:admin@172.17.0.2:27017/admin")
 
 (defn home-page
  [request]
- (ring-resp/response "Hello world!"))
+ (ring-resp/response "Hello world! "))
 
 (defn get-projects
   [request]
@@ -46,6 +47,12 @@
                   (http/json-response
                         (mc/insert-and-return db "projects-catalog" incoming))))
 
+(defn update-project [request]
+  (let [uri connect-string
+        {:keys [conn db]} (mg/connect-via-uri uri)]
+        (mc/update db "projects-catalog" { :name "John"  })
+  )
+)
 
 (defhandler token-check [request]
     (let [token (get-in request [:headers "x-catalog-token"])]
@@ -54,7 +61,6 @@
         )
     )
 )
-
 
 ;; Defines "/" and "/about" routes with their associated :get handlers.
 ;; The interceptors defined after the verb map (e.g., {:get home-page}
@@ -76,7 +82,7 @@
   `[[["/" {:get home-page}
       ^:interceptors [(body-params/body-params) http/html-body token-check]
       ["/about" {:get about-page}]
-      ["/projects/" {:get get-projects :post add-project}]
+      ["/projects/" {:put update-project :get get-projects :post add-project}]
       ["/projects/:proj-name" {:get get-project}]]]])
 
 
