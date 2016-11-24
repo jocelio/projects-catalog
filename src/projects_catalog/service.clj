@@ -16,7 +16,7 @@
                               (route/url-for ::about-page))))
 
 
-(def connect-string "mongodb://admin:admin@172.17.0.2:27017/admin")
+(def connect-string "mongodb://admin:admin@172.17.0.1:27017/admin")
 
 (defn home-page
  [request]
@@ -44,13 +44,26 @@
       (let [uri connect-string
             incoming (:json-params request)
             {:keys [conn db]} (mg/connect-via-uri uri)]
-                  (http/json-response
-                        (mc/insert-and-return db "projects-catalog" incoming))))
+                  (assoc (http/json-response
+                        (mc/insert-and-return db "projects-catalog" incoming)) :status 201)))
 
 (defn update-project [request]
   (let [uri connect-string
-        {:keys [conn db]} (mg/connect-via-uri uri)]
-        (mc/update db "projects-catalog" { :name "John"  })
+        incoming (:json-params request)
+        {:keys [conn db]} (mg/connect-via-uri uri)
+        coll "projects-catalog"]
+        (mc/update db coll {:_id (:_id incoming)} (dissoc incoming :_id) {:multi true})
+        (assoc (ring-resp/response incoming) :status 200)
+  )
+)
+
+(defn delete-project [request]
+  (let [uri connect-string
+        did (-> request :json-params :_id)
+        {:keys [conn db]} (mg/connect-via-uri uri)
+        coll "projects-catalog"]
+        (mc/remove-by-id db coll "583635ba84724c25aff69beb")
+        (assoc (ring-resp/response did) :status 202)
   )
 )
 
@@ -82,7 +95,7 @@
   `[[["/" {:get home-page}
       ^:interceptors [(body-params/body-params) http/html-body token-check]
       ["/about" {:get about-page}]
-      ["/projects/" {:put update-project :get get-projects :post add-project}]
+      ["/projects/" {:put update-project :get get-projects :post add-project :delete delete-project}]
       ["/projects/:proj-name" {:get get-project}]]]])
 
 
