@@ -1,6 +1,6 @@
-# projects_catalog
+# Projects Catalog
 
-FIXME
+A simple rest service.
 
 ## Getting Started
 
