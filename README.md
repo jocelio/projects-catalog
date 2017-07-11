@@ -1,6 +1,6 @@
 # Projects Catalog
 
-A simple rest service built in clojure & pedestal http framwork.
+A simple rest service built in clojure & pedestal http framework.
 
 ## Getting Started
 
